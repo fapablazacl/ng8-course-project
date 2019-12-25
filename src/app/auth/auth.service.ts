@@ -2,8 +2,9 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { catchError, tap } from "rxjs/operators";
-import { throwError, Subject } from "rxjs";
+import { throwError, Subject, BehaviorSubject } from "rxjs";
 import { User } from "./user.model";
+import { Router } from "@angular/router";
 
 export interface AuthResponseData {
   kind: string;
@@ -17,9 +18,9 @@ export interface AuthResponseData {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  userSubject = new Subject<User>();
-
-  constructor(private http: HttpClient) {}
+  userSubject = new BehaviorSubject<User>(null);
+  
+  constructor(private http: HttpClient, private router: Router) {}
 
   signup(email:string, password: string) {
     const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key= AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
@@ -91,5 +92,10 @@ export class AuthService {
     }
 
     return throwError(msg);
+  }
+
+  logout() {
+    this.userSubject.next(null);
+    this.router.navigate(['/auth']);
   }
 }
