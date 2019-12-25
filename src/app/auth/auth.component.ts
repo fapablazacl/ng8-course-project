@@ -35,9 +35,8 @@ export class AuthComponent {
       .subscribe(responseData => {
         console.log(responseData);
         this.isLoading = false;
-      }, error => {
-        console.log(error);
-        this.error = 'An error occurred!';
+      }, errorMessage => {
+        this.error = errorMessage;
         this.isLoading = false;
       });
     }
