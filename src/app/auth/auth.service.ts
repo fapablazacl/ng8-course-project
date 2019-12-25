@@ -1,45 +1,70 @@
 
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { catchError } from "rxjs/operators";
 import { throwError } from "rxjs";
+import { NoPreloading } from "@angular/router";
 
-interface AuthResponseData {
+export interface AuthResponseData {
   kind: string;
   idToken: string;
   email: string;
   refreshToken: string;
   expiresIn: string;
   localId: string;
+  registered?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  private url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key= AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
 
   constructor(private http: HttpClient) {}
 
   signup(email:string, password: string) {
+    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key= AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
+
     return this.http.post<AuthResponseData> (
-      this.url, {
+      url, {
         email: email,
         password: password,
         returnSecureToken: true
       })
-      .pipe(catchError( (errorResponse) => {
-        let msg = "Unknown error ocurred!";
+      .pipe(catchError(this.handleError));
+  }
 
-        if (!errorResponse.error || !errorResponse.error.error) {
-          return throwError(msg);
-        }
+  login(email: string, password: string) {
+    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
 
-        switch (errorResponse.error.error.message) {
-          case 'EMAIL_EXISTS':
-            msg = "The email exists already";
-        }
+    return this.http.post<AuthResponseData> (
+      url, {
+        email: email,
+        password: password,
+        returnSecureToken: true
+      })
+      .pipe(catchError(this.handleError));
+  }
 
-        return throwError(msg);
-      }))
-      ;
+  private handleError(errorResponse: HttpErrorResponse) {
+    let msg = "Unknown error ocurred!";
+
+    if (!errorResponse.error || !errorResponse.error.error) {
+      return throwError(msg);
+    }
+
+    switch (errorResponse.error.error.message) {
+      case 'EMAIL_EXISTS':
+        msg = "The email exists already";
+        break;
+
+      case 'EMAIL_NOT_FOUND':
+        msg = "The email doesn't exists";
+        break;
+
+      case 'INVALID_PASSWORD':
+        msg = "Invalid passwrod";
+        break;
+    }
+
+    return throwError(msg);
   }
 }
