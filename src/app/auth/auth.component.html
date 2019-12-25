@@ -1,3 +1,5 @@
+<ng-template appPlaceholder></ng-template>
+
 <div class="row">
   <div class="col-xs-12 col-md-6 col-md-ofset-3">
 
@@ -6,7 +8,10 @@
       <p>{{error}}</p>
     </div>
     -->
+
+    <!--
     <app-alert [message]="error" *ngIf="error" (close)="onHandleError()"></app-alert>
+    -->
 
     <div *ngIf="isLoading">
       <app-loading-spinner></app-loading-spinner>
