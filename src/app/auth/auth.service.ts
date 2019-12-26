@@ -5,6 +5,7 @@ import { catchError, tap } from "rxjs/operators";
 import { throwError, Subject, BehaviorSubject } from "rxjs";
 import { User } from "./user.model";
 import { Router } from "@angular/router";
+import { environment } from '../../environments/environment';
 
 export interface AuthResponseData {
   kind: string;
@@ -25,7 +26,7 @@ export class AuthService {
   constructor(private http: HttpClient, private router: Router) {}
 
   signup(email:string, password: string) {
-    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key= AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
+    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=' + environment.firebaseAPIKey;
 
     return this.http.post<AuthResponseData> (
       url, {
@@ -44,7 +45,7 @@ export class AuthService {
   }
 
   login(email: string, password: string) {
-    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyDozjoocYJyAtj0J6thHkL4hTsQFUFWEr0';
+    const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=' + environment.firebaseAPIKey;
 
     return this.http.post<AuthResponseData> (
       url, {
