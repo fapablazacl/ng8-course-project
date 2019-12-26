@@ -6,6 +6,9 @@ import { throwError, Subject, BehaviorSubject } from "rxjs";
 import { User } from "./user.model";
 import { Router } from "@angular/router";
 import { environment } from '../../environments/environment';
+import { Store } from "@ngrx/store";
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from './store/auth.actions';
 
 export interface AuthResponseData {
   kind: string;
@@ -19,11 +22,13 @@ export interface AuthResponseData {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  userSubject = new BehaviorSubject<User>(null);
-
   private tokenExpirationTimer: any;
   
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient, 
+    private router: Router, 
+    private store: Store<fromApp.AppState>
+  ) {}
 
   signup(email:string, password: string) {
     const url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=' + environment.firebaseAPIKey;
@@ -70,7 +75,10 @@ export class AuthService {
     const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
     const user = new User(email, userId, token, expirationDate);
 
-    this.userSubject.next(user);
+    // this.userSubject.next(user);
+    this.store.dispatch(new AuthActions.Login({
+      email, userId, token, expirationDate
+    }));
 
     this.autoLogout(expiresIn * 1000);
 
@@ -102,7 +110,9 @@ export class AuthService {
   }
 
   logout() {
-    this.userSubject.next(null);
+    // this.userSubject.next(null);
+    this.store.dispatch(new AuthActions.Logout());
+
     this.router.navigate(['/auth']);
 
     localStorage.removeItem('userData');
@@ -138,7 +148,14 @@ export class AuthService {
     );
 
     if (loadedUser.token) {
-      this.userSubject.next(loadedUser);
+      // this.userSubject.next(loadedUser);
+      this.store.dispatch(new AuthActions.Login({
+        email: loadedUser.email,
+        userId: loadedUser.id,
+        token: loadedUser.token,
+        expirationDate: new Date(userData._tokenExpirationDate)
+      }));
+
       const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
 
       this.autoLogout(expirationDuration);
